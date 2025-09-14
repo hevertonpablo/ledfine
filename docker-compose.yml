@@ -20,7 +20,7 @@ services:
     image: nginx:alpine
     container_name: ledfine_web
     ports:
-      - "8080:80"
+      - "8088:80"
     volumes:
       - ./:/var/www
       - ./nginx:/etc/nginx/conf.d
