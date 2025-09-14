@@ -2,7 +2,6 @@ services:
   app:
     build: .
     image: ledfine/php:8.2-fpm
-    container_name: ledfine_app
     working_dir: /var/www/app
     environment:
       COMPOSER_ALLOW_SUPERUSER: "1"
@@ -12,8 +11,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - ledfine_network
     restart: unless-stopped
 
   webserver:
@@ -21,7 +18,6 @@ services:
       context: .
       dockerfile: Dockerfile.nginx
     image: ledfine/nginx:latest
-    container_name: ledfine_web
     ports:
       - "8080:80"
     volumes:
@@ -29,8 +25,6 @@ services:
     depends_on:
       app:
         condition: service_started
-    networks:
-      - ledfine_network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost/healthz || exit 1"]
@@ -40,7 +34,6 @@ services:
 
   db:
     image: mysql:8
-    container_name: ledfine_db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -49,8 +42,6 @@ services:
       MYSQL_PASSWORD: ledfine_pass
     volumes:
       - dbdata:/var/lib/mysql
-    networks:
-      - ledfine_network
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$MYSQL_ROOT_PASSWORD || exit 1"]
       interval: 15s
@@ -59,16 +50,10 @@ services:
 
   node:
     image: node:20-alpine
-    container_name: ledfine_node
     working_dir: /var/www/app
     volumes:
       - ./:/var/www
-    networks:
-      - ledfine_network
     profiles: ["dev"]
-
-networks:
-  ledfine_network:
 
 volumes:
   dbdata:
