@@ -19,8 +19,8 @@ services:
   webserver:
     image: nginx:alpine
     container_name: ledfine_web
-    expose:
-      - "80"
+    ports:
+      - "8080:80"
     volumes:
       - ./:/var/www
       - ./nginx:/etc/nginx/conf.d
