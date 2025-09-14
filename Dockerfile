@@ -41,12 +41,10 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Optimize PHP-FPM config a bit (optional sensible defaults)
 RUN set -eux; \
   mkdir -p /usr/local/etc/php/conf.d; \
-  { \
-    echo 'memory_limit=512M'; \
-    echo 'upload_max_filesize=64M'; \
-    echo 'post_max_size=64M'; \
-    echo 'max_execution_time=120'; \
-  } | tee /usr/local/etc/php/conf.d/custom.ini > /dev/null
+  echo 'memory_limit=512M'        >  /usr/local/etc/php/conf.d/custom.ini; \
+  echo 'upload_max_filesize=64M'  >> /usr/local/etc/php/conf.d/custom.ini; \
+  echo 'post_max_size=64M'        >> /usr/local/etc/php/conf.d/custom.ini; \
+  echo 'max_execution_time=120'   >> /usr/local/etc/php/conf.d/custom.ini
 
 # Ensure proper permissions for www-data
 RUN usermod -u 1000 www-data && groupmod -g 1000 www-data || true \
