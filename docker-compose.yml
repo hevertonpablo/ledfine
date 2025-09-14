@@ -1,0 +1,60 @@
+services:
+  app:
+    build: .
+    image: ledfine/php:8.2-fpm
+    container_name: ledfine_app
+    working_dir: /var/www/app
+    environment:
+      COMPOSER_ALLOW_SUPERUSER: "1"
+    volumes:
+      - ./:/var/www
+      - composer_cache:/tmp/composer
+    depends_on:
+      - db
+    networks:
+      - ledfine_network
+
+  webserver:
+    image: nginx:alpine
+    container_name: ledfine_web
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - ledfine_network
+
+  db:
+    image: mysql:8
+    container_name: ledfine_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ledfine_db
+      MYSQL_USER: ledfine_user
+      MYSQL_PASSWORD: ledfine_pass
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - ledfine_network
+
+  node:
+    image: node:20-alpine
+    container_name: ledfine_node
+    working_dir: /var/www/app
+    volumes:
+      - ./:/var/www
+    networks:
+      - ledfine_network
+
+networks:
+  ledfine_network:
+
+volumes:
+  dbdata:
+  composer_cache:
