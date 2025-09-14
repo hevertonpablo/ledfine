@@ -22,8 +22,8 @@ services:
       dockerfile: Dockerfile.nginx
     image: ledfine/nginx:latest
     container_name: ledfine_web
-    expose:
-      - "80"
+    ports:
+      - "8080:80"
     volumes:
       - ./:/var/www
     depends_on:
