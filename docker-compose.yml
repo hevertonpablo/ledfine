@@ -18,8 +18,8 @@ services:
       context: .
       dockerfile: Dockerfile.nginx
     image: ledfine/nginx:latest
-    ports:
-      - "8080:80"
+    expose:
+      - "80"
     volumes:
       - ./:/var/www
     depends_on:
