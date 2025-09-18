@@ -55,17 +55,26 @@ RUN usermod -u 1000 www-data && groupmod -g 1000 www-data || true \
 # Copy application files
 COPY --chown=www-data:www-data . /var/www/
 
-# Create a simple inline entrypoint that always works
+# Create a simple inline entrypoint that always works and auto-detects Laravel root
 RUN echo '#!/bin/bash\n\
 set -e\n\
-cd /var/www/app\n\
+ROOT=/var/www\n\
+if [ -f "$ROOT/artisan" ]; then\n\
+  cd "$ROOT"\n\
+elif [ -f "$ROOT/app/artisan" ]; then\n\
+  cd "$ROOT/app"\n\
+else\n\
+  # Fallback to /var/www if neither exists\n\
+  cd "$ROOT"\n\
+fi\n\
+\n\
 # Ensure composer dependencies exist when source is volume-mounted\n\
-if [ ! -f vendor/autoload.php ]; then\n\
-  echo "� Composer autoload missing, installing…"\n\
+if [ -f composer.json ] && [ ! -f vendor/autoload.php ]; then\n\
+  echo "📦 Composer autoload missing, installing…"\n\
   composer install --no-dev --optimize-autoloader --no-interaction || true\n\
 fi\n\
 \n\
-echo "�🚀 Starting PHP-FPM..."\n\
+echo "� Starting PHP-FPM..."\n\
 exec php-fpm --nodaemonize' > /usr/local/bin/start-app.sh \
  && chmod +x /usr/local/bin/start-app.sh \
  && mkdir -p /var/www/app/storage/logs \
@@ -74,8 +83,8 @@ exec php-fpm --nodaemonize' > /usr/local/bin/start-app.sh \
 
 USER www-data
 
-# Install dependencies and setup application
-WORKDIR /var/www/app
+# Install dependencies and setup application (set neutral working dir)
+WORKDIR /var/www
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Set proper permissions for Laravel directories
