@@ -51,7 +51,27 @@ RUN usermod -u 1000 www-data && groupmod -g 1000 www-data || true \
  && mkdir -p /tmp/composer \
  && chown -R www-data:www-data /var/www /tmp/composer
 
+# Copy application files
+COPY --chown=www-data:www-data . /var/www/
+
+# Make scripts executable and create necessary directories
+RUN chmod +x /var/www/scripts/*.sh \
+ && mkdir -p /var/www/app/storage/logs \
+ && mkdir -p /var/www/app/storage/framework/{cache,sessions,views} \
+ && mkdir -p /var/www/app/bootstrap/cache
+
 USER www-data
 
-# Default command
-CMD ["php-fpm"]
+# Install dependencies and setup application
+WORKDIR /var/www/app
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Set proper permissions for Laravel directories
+USER root
+RUN chown -R www-data:www-data /var/www/app/storage /var/www/app/bootstrap/cache \
+ && chmod -R 775 /var/www/app/storage /var/www/app/bootstrap/cache
+
+USER www-data
+
+# Default command - use custom entrypoint
+CMD ["/var/www/scripts/entrypoint.sh"]

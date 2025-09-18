@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\TrustProxies;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Cookie\Middleware\EncryptCookies as BaseEncryptCookies;
 use Illuminate\Foundation\Application;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
          */
         $middleware->remove(ConvertEmptyStringsToNull::class);
 
+        $middleware->append(TrustProxies::class);
         $middleware->append(SecureHeaders::class);
         $middleware->append(CanInstall::class);
 
