@@ -55,10 +55,9 @@ RUN usermod -u 1000 www-data && groupmod -g 1000 www-data || true \
 # Copy application files
 COPY --chown=www-data:www-data . /var/www/
 
-# Make entrypoint executable and create directories
-RUN chmod +x /var/www/scripts/entrypoint-simple.sh \
- && chmod +x /var/www/scripts/entrypoint-minimal.sh \
- && chmod +x /var/www/scripts/entrypoint-fast.sh \
+# Create a simple inline entrypoint that always works
+RUN echo '#!/bin/bash\necho "🚀 Starting PHP-FPM..."\ncd /var/www/app\nexec php-fpm --nodaemonize' > /usr/local/bin/start-app.sh \
+ && chmod +x /usr/local/bin/start-app.sh \
  && mkdir -p /var/www/app/storage/logs \
  && mkdir -p /var/www/app/storage/framework/{cache,sessions,views} \
  && mkdir -p /var/www/app/bootstrap/cache
@@ -76,5 +75,5 @@ RUN chown -R www-data:www-data /var/www/app/storage /var/www/app/bootstrap/cache
 
 USER www-data
 
-# Default command - use the fast entrypoint
-CMD ["bash", "/var/www/scripts/entrypoint-fast.sh"]
+# Use the inline entrypoint
+CMD ["/usr/local/bin/start-app.sh"]
