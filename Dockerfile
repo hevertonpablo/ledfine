@@ -55,50 +55,9 @@ RUN usermod -u 1000 www-data && groupmod -g 1000 www-data || true \
 # Copy application files
 COPY --chown=www-data:www-data . /var/www/
 
-# Create a simple entrypoint script
-RUN echo '#!/bin/bash\n\
-set -e\n\
-echo "🚀 Starting Laravel Application..."\n\
-cd /var/www/app\n\
-\n\
-# Wait for database\n\
-echo "⏳ Waiting for database..."\n\
-for i in {1..30}; do\n\
-  if php artisan migrate:status >/dev/null 2>&1; then\n\
-    echo "✅ Database ready!"\n\
-    break\n\
-  fi\n\
-  echo "🔄 Attempt $i/30 - Database not ready, waiting..."\n\
-  sleep 2\n\
-done\n\
-\n\
-# Setup Laravel\n\
-echo "🔧 Setting up Laravel..."\n\
-php artisan config:clear || true\n\
-php artisan cache:clear || true\n\
-php artisan route:clear || true\n\
-php artisan view:clear || true\n\
-\n\
-# Run migrations\n\
-echo "🗃️ Running migrations..."\n\
-php artisan migrate --force\n\
-\n\
-# Create storage link\n\
-if [ ! -L "/var/www/app/public/storage" ]; then\n\
-  php artisan storage:link || true\n\
-fi\n\
-\n\
-# Cache for production\n\
-if [ "$APP_ENV" = "production" ]; then\n\
-  echo "📦 Caching for production..."\n\
-  php artisan config:cache\n\
-  php artisan route:cache\n\
-  php artisan view:cache\n\
-fi\n\
-\n\
-echo "🎉 Starting PHP-FPM..."\n\
-exec php-fpm' > /entrypoint.sh \
- && chmod +x /entrypoint.sh \
+# Make entrypoint executable and create directories
+RUN chmod +x /var/www/scripts/entrypoint-simple.sh \
+ && chmod +x /var/www/scripts/entrypoint-minimal.sh \
  && mkdir -p /var/www/app/storage/logs \
  && mkdir -p /var/www/app/storage/framework/{cache,sessions,views} \
  && mkdir -p /var/www/app/bootstrap/cache
@@ -116,5 +75,5 @@ RUN chown -R www-data:www-data /var/www/app/storage /var/www/app/bootstrap/cache
 
 USER www-data
 
-# Default command - use the inline entrypoint
-CMD ["/entrypoint.sh"]
+# Default command - use the minimal entrypoint for now
+CMD ["bash", "/var/www/scripts/entrypoint-minimal.sh"]
