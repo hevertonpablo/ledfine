@@ -58,6 +58,7 @@ COPY --chown=www-data:www-data . /var/www/
 # Make entrypoint executable and create directories
 RUN chmod +x /var/www/scripts/entrypoint-simple.sh \
  && chmod +x /var/www/scripts/entrypoint-minimal.sh \
+ && chmod +x /var/www/scripts/entrypoint-fast.sh \
  && mkdir -p /var/www/app/storage/logs \
  && mkdir -p /var/www/app/storage/framework/{cache,sessions,views} \
  && mkdir -p /var/www/app/bootstrap/cache
@@ -75,5 +76,5 @@ RUN chown -R www-data:www-data /var/www/app/storage /var/www/app/bootstrap/cache
 
 USER www-data
 
-# Default command - use the minimal entrypoint for now
-CMD ["bash", "/var/www/scripts/entrypoint-minimal.sh"]
+# Default command - use the fast entrypoint
+CMD ["bash", "/var/www/scripts/entrypoint-fast.sh"]

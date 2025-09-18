@@ -15,11 +15,11 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      test: ["CMD-SHELL", "test -f /var/run/php-fpm.pid || pgrep php-fpm || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 120s
 
   webserver:
     build:
@@ -32,27 +32,27 @@ services:
       - ./:/var/www
     depends_on:
       app:
-        condition: service_healthy
+        condition: service_started
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/debug.php || curl -f http://localhost/healthz || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost/healthz || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 40s
+      retries: 5
+      start_period: 60s
 
   db:
     image: mysql:8
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: ledfine_db
-      MYSQL_USER: ledfine_user
-      MYSQL_PASSWORD: ledfine_pass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_DATABASE:-ledfine_db}
+      MYSQL_USER: ${DB_USERNAME:-ledfine_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-ledfine_pass}
     volumes:
       - dbdata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$MYSQL_ROOT_PASSWORD || exit 1"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p${MYSQL_ROOT_PASSWORD:-root} || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
