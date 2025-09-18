@@ -56,7 +56,17 @@ RUN usermod -u 1000 www-data && groupmod -g 1000 www-data || true \
 COPY --chown=www-data:www-data . /var/www/
 
 # Create a simple inline entrypoint that always works
-RUN echo '#!/bin/bash\necho "🚀 Starting PHP-FPM..."\ncd /var/www/app\nexec php-fpm --nodaemonize' > /usr/local/bin/start-app.sh \
+RUN echo '#!/bin/bash\n\
+set -e\n\
+cd /var/www/app\n\
+# Ensure composer dependencies exist when source is volume-mounted\n\
+if [ ! -f vendor/autoload.php ]; then\n\
+  echo "� Composer autoload missing, installing…"\n\
+  composer install --no-dev --optimize-autoloader --no-interaction || true\n\
+fi\n\
+\n\
+echo "�🚀 Starting PHP-FPM..."\n\
+exec php-fpm --nodaemonize' > /usr/local/bin/start-app.sh \
  && chmod +x /usr/local/bin/start-app.sh \
  && mkdir -p /var/www/app/storage/logs \
  && mkdir -p /var/www/app/storage/framework/{cache,sessions,views} \
