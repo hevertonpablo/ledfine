@@ -3,6 +3,8 @@ services:
     build: .
     image: ledfine/php:8.2-fpm
     working_dir: /var/www/app
+    expose:
+      - "9000"
     environment:
       COMPOSER_ALLOW_SUPERUSER: "1"
     volumes:
@@ -12,6 +14,12 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   webserver:
     build:
@@ -24,10 +32,10 @@ services:
       - ./:/var/www
     depends_on:
       app:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/health.php || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost/info.php || curl -f http://localhost/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
