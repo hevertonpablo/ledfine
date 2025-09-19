@@ -73,12 +73,17 @@ else
     echo "Database not available, skipping database setup"
 fi
 
-# Clear caches safely (after database is ready)
-echo "Clearing application caches..."
+# Optimize application for production (after database is ready)
+echo "Optimizing application for production..."
 php /var/www/html/artisan config:clear || true
 php /var/www/html/artisan cache:clear || true
 php /var/www/html/artisan view:clear || true
 php /var/www/html/artisan route:clear || true
+
+echo "Caching configuration for production..."
+php /var/www/html/artisan config:cache || true
+php /var/www/html/artisan route:cache || true
+php /var/www/html/artisan view:cache || true
 
 echo "Starting supervisord..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
