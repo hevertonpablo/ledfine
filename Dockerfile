@@ -91,6 +91,10 @@ COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 # Copy Supervisor configuration
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Copy startup script
+COPY docker/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
 # Copy application from builder stage
 COPY --from=builder --chown=www-data:www-data /var/www/html /var/www/html
 
@@ -103,5 +107,5 @@ RUN mkdir -p /var/www/html/storage/logs \
 # Expose port
 EXPOSE 80
 
-# Start supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start with initialization script
+CMD ["/usr/local/bin/start.sh"]
