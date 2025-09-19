@@ -97,6 +97,7 @@ COPY --from=builder --chown=www-data:www-data /var/www/html /var/www/html
 # Create necessary directories
 RUN mkdir -p /var/www/html/storage/logs \
     && mkdir -p /var/www/html/bootstrap/cache \
+    && mkdir -p /var/log/supervisor \
     && chown -R www-data:www-data /var/www/html
 
 # Expose port
