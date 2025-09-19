@@ -16,7 +16,8 @@ RUN apk add --no-cache \
     icu-dev \
     mysql-client \
     nodejs \
-    npm
+    npm \
+    libzip-dev
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
@@ -28,7 +29,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     bcmath \
     gd \
     intl \
-    calendar
+    calendar \
+    zip
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
