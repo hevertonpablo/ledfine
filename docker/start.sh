@@ -48,9 +48,15 @@ if php /var/www/html/artisan db:show > /dev/null 2>&1; then
         echo "Running database seeders..."
         php /var/www/html/artisan db:seed --force || true
         
-        echo "Installing Bagisto..."
-        php /var/www/html/artisan bagisto:install --skip-env-check --skip-admin-creation || true
+        echo "Setting up Bagisto configuration..."
+        # Skip the interactive installer and just run necessary setup commands
+        php /var/www/html/artisan vendor:publish --tag=bagisto-config --force || true
+        php /var/www/html/artisan optimize:clear || true
+        
+        echo "Bagisto setup completed successfully!"
     fi
+    
+    echo "Database setup completed successfully!"
 else
     echo "Database not available, skipping database setup"
 fi
