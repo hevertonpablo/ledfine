@@ -104,6 +104,9 @@ RUN chmod +x /usr/local/bin/start.sh
 # Copy application from builder stage
 COPY --from=builder --chown=www-data:www-data /var/www/html /var/www/html
 
+# Set working directory
+WORKDIR /var/www/html
+
 # Create necessary directories
 RUN mkdir -p /var/www/html/storage/logs \
     && mkdir -p /var/www/html/storage/framework/cache \
