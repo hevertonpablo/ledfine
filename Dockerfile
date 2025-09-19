@@ -78,6 +78,12 @@ RUN apk add --no-cache \
     php83-curl \
     php83-zip \
     php83-openssl \
+    php83-dom \
+    php83-xmlreader \
+    php83-xmlwriter \
+    php83-simplexml \
+    php83-fileinfo \
+    php83-iconv \
     supervisor \
     && adduser -u 82 -D -S -G www-data www-data 2>/dev/null || true
 
