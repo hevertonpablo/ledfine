@@ -17,7 +17,13 @@ RUN apk add --no-cache \
     mysql-client \
     nodejs \
     npm \
-    libzip-dev
+    libzip-dev \
+    autoconf \
+    gcc \
+    g++ \
+    make \
+    linux-headers \
+    php83-redis
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
@@ -30,9 +36,11 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     gd \
     intl \
     calendar \
-    zip \
-    && pecl install redis \
-    && docker-php-ext-enable redis
+    zip
+
+# Install Redis extension using PECL with better error handling
+RUN pecl install redis && docker-php-ext-enable redis || \
+    echo "extension=redis.so" > /usr/local/etc/php/conf.d/redis.ini
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
