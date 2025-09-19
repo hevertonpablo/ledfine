@@ -38,31 +38,17 @@ done
 
 # Run migrations and setup if database is available
 if php /var/www/html/artisan db:show > /dev/null 2>&1; then
-    echo "Database is ready, checking installation status..."
+    echo "Database is ready, checking migrations..."
     
-    # Check if this is a fresh install or forced fresh install
-    if [ ! -f "/var/www/html/storage/installed" ] || [ "${FORCE_FRESH_INSTALL:-false}" = "true" ]; then
-        if [ "${FORCE_FRESH_INSTALL:-false}" = "true" ]; then
-            echo "FORCE_FRESH_INSTALL=true detected, performing fresh installation..."
-            rm -f /var/www/html/storage/installed
-        else
-            echo "Fresh installation detected, setting up database..."
-        fi
-        
-        # Try migrations first, if they fail due to conflicts, reset and retry
+    # Check if admins table exists and has data
+    ADMIN_COUNT=$(php /var/www/html/artisan tinker --execute="try { echo \DB::table('admins')->count(); } catch(Exception \$e) { echo '0'; }" 2>/dev/null || echo "0")
+    
+    if [ "$ADMIN_COUNT" = "0" ]; then
         echo "Running database migrations..."
-        if ! php /var/www/html/artisan migrate --force 2>/dev/null; then
-            echo "Migration conflicts detected, performing fresh migration..."
-            php /var/www/html/artisan migrate:fresh --force --seed || {
-                echo "Fresh migration failed, trying migrate:reset..."
-                php /var/www/html/artisan migrate:reset --force || true
-                php /var/www/html/artisan migrate --force || true
-                php /var/www/html/artisan db:seed --force || true
-            }
-        else
-            echo "Running database seeders..."
-            php /var/www/html/artisan db:seed --force || true
-        fi
+        php /var/www/html/artisan migrate --force || true
+        
+        echo "Running database seeders..."
+        php /var/www/html/artisan db:seed --force || true
         
         echo "Setting up Bagisto configuration..."
         php /var/www/html/artisan vendor:publish --tag=bagisto-config --force || true
@@ -70,7 +56,7 @@ if php /var/www/html/artisan db:show > /dev/null 2>&1; then
         
         echo "Bagisto setup completed successfully!"
     else
-        echo "Installation marker found, skipping database setup"
+        echo "Database already configured with $ADMIN_COUNT admin(s)"
     fi
     
     # Always mark installation as completed
