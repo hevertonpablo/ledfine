@@ -40,8 +40,10 @@ done
 if php /var/www/html/artisan db:show > /dev/null 2>&1; then
     echo "Database is ready, checking migrations..."
     
-    # Check if migrations need to be run
-    if ! php /var/www/html/artisan migrate:status > /dev/null 2>&1; then
+    # Check if admins table exists and has data
+    ADMIN_COUNT=$(php /var/www/html/artisan tinker --execute="try { echo \DB::table('admins')->count(); } catch(Exception \$e) { echo '0'; }" 2>/dev/null || echo "0")
+    
+    if [ "$ADMIN_COUNT" = "0" ]; then
         echo "Running database migrations..."
         php /var/www/html/artisan migrate --force || true
         
@@ -49,19 +51,22 @@ if php /var/www/html/artisan db:show > /dev/null 2>&1; then
         php /var/www/html/artisan db:seed --force || true
         
         echo "Setting up Bagisto configuration..."
-        # Skip the interactive installer and just run necessary setup commands
         php /var/www/html/artisan vendor:publish --tag=bagisto-config --force || true
         php /var/www/html/artisan optimize:clear || true
         
         echo "Bagisto setup completed successfully!"
+    else
+        echo "Database already configured with $ADMIN_COUNT admin(s)"
     fi
     
-    # Mark installation as completed
-    if [ ! -f /var/www/html/storage/installed ]; then
-        echo "Marking Bagisto as installed..."
-        touch /var/www/html/storage/installed
-        chown www-data:www-data /var/www/html/storage/installed
-    fi
+    # Always mark installation as completed
+    echo "Marking Bagisto as installed..."
+    touch /var/www/html/storage/installed
+    chown www-data:www-data /var/www/html/storage/installed
+    chmod 644 /var/www/html/storage/installed
+    
+    # Debug: Verify the file
+    echo "Installation marker created: $(ls -la /var/www/html/storage/installed)"
     
     echo "Database setup completed successfully!"
 else
