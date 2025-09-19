@@ -56,6 +56,13 @@ if php /var/www/html/artisan db:show > /dev/null 2>&1; then
         echo "Bagisto setup completed successfully!"
     fi
     
+    # Mark installation as completed
+    if [ ! -f /var/www/html/storage/installed ]; then
+        echo "Marking Bagisto as installed..."
+        touch /var/www/html/storage/installed
+        chown www-data:www-data /var/www/html/storage/installed
+    fi
+    
     echo "Database setup completed successfully!"
 else
     echo "Database not available, skipping database setup"
