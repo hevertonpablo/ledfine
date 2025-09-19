@@ -23,16 +23,44 @@ if ! grep -q "APP_KEY=base64:" /var/www/html/.env; then
     php /var/www/html/artisan key:generate --force
 fi
 
-# Now clear caches safely
+# Wait for database to be ready
+echo "Waiting for database to be ready..."
+timeout=60
+while ! php /var/www/html/artisan db:show > /dev/null 2>&1; do
+    echo "Database not ready, waiting..."
+    sleep 2
+    timeout=$((timeout - 2))
+    if [ $timeout -le 0 ]; then
+        echo "Database connection timeout!"
+        break
+    fi
+done
+
+# Run migrations and setup if database is available
+if php /var/www/html/artisan db:show > /dev/null 2>&1; then
+    echo "Database is ready, checking migrations..."
+    
+    # Check if migrations need to be run
+    if ! php /var/www/html/artisan migrate:status > /dev/null 2>&1; then
+        echo "Running database migrations..."
+        php /var/www/html/artisan migrate --force || true
+        
+        echo "Running database seeders..."
+        php /var/www/html/artisan db:seed --force || true
+        
+        echo "Installing Bagisto..."
+        php /var/www/html/artisan bagisto:install --skip-env-check --skip-admin-creation || true
+    fi
+else
+    echo "Database not available, skipping database setup"
+fi
+
+# Clear caches safely (after database is ready)
 echo "Clearing application caches..."
 php /var/www/html/artisan config:clear || true
 php /var/www/html/artisan cache:clear || true
 php /var/www/html/artisan view:clear || true
 php /var/www/html/artisan route:clear || true
-
-# Run migrations if needed
-echo "Checking database connection..."
-php /var/www/html/artisan migrate:status || true
 
 echo "Starting supervisord..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
