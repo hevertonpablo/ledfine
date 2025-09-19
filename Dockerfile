@@ -36,14 +36,12 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files
-COPY composer.json composer.lock ./
+# Copy application code first (needed for Bagisto packages)
+COPY . .
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-scripts
-
-# Copy application code
-COPY . .
+RUN composer install --no-dev --optimize-autoloader --no-scripts \
+    && composer dump-autoload --optimize
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
