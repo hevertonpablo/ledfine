@@ -40,6 +40,43 @@ done
 if php /var/www/html/artisan db:show > /dev/null 2>&1; then
     echo "Database is ready, checking installation status..."
     
+    # Check for problematic partial installations
+    echo "Checking for database conflicts..."
+    CONFLICT_DETECTED=false
+    
+    # Check for the specific problematic table
+    if php /var/www/html/artisan tinker --execute="
+        try {
+            \$exists = \DB::getSchemaBuilder()->hasTable('booking_product_appointment_slots');
+            echo \$exists ? '1' : '0';
+        } catch (Exception \$e) {
+            echo '0';
+        }
+    " 2>/dev/null | grep -q "1"; then
+        echo "⚠️  Conflict detected: booking_product_appointment_slots table exists"
+        CONFLICT_DETECTED=true
+    fi
+    
+    # Check for missing columns in attribute_groups
+    if php /var/www/html/artisan tinker --execute="
+        try {
+            \$hasCode = \DB::getSchemaBuilder()->hasColumn('attribute_groups', 'code');
+            echo \$hasCode ? '0' : '1';
+        } catch (Exception \$e) {
+            echo '1';
+        }
+    " 2>/dev/null | grep -q "1"; then
+        echo "⚠️  Conflict detected: attribute_groups missing 'code' column"
+        CONFLICT_DETECTED=true
+    fi
+    
+    # If conflicts detected, force fresh install
+    if [ "$CONFLICT_DETECTED" = "true" ]; then
+        echo "🔧 Database conflicts detected! Forcing fresh installation..."
+        FORCE_FRESH_INSTALL=true
+        rm -f /var/www/html/storage/installed
+    fi
+    
     # Check if this is a forced fresh install
     if [ "${FORCE_FRESH_INSTALL:-false}" = "true" ]; then
         echo "FORCE_FRESH_INSTALL=true detected, performing fresh database installation..."
