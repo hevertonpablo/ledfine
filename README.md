@@ -19,13 +19,13 @@ cp .env.example .env
 # 3. Configure as variáveis necessárias no .env
 # As principais já estão configuradas para desenvolvimento
 
-# 4. Suba os containers
-docker-compose up -d
+# 4. Suba os containers (usando arquivo específico para desenvolvimento)
+docker-compose -f docker-compose.dev.yml up -d
 
 # 5. Instale as dependências e configure o Bagisto
-docker-compose exec laravel.test composer install
-docker-compose exec laravel.test php artisan key:generate
-docker-compose exec laravel.test php artisan bagisto:install
+docker-compose -f docker-compose.dev.yml exec laravel.test composer install
+docker-compose -f docker-compose.dev.yml exec laravel.test php artisan key:generate
+docker-compose -f docker-compose.dev.yml exec laravel.test php artisan bagisto:install
 ```
 
 **URLs de Desenvolvimento:**
@@ -36,10 +36,10 @@ docker-compose exec laravel.test php artisan bagisto:install
 
 ### Produção (Coolify)
 
-O projeto está configurado para deploy automático via Coolify:
+O projeto está configurado para deploy automático via Coolify usando o arquivo padrão `docker-compose.yml`:
 
-1. **Docker Compose**: `docker-compose.prod.yml` otimizado para produção
-2. **Dockerfile**: `Dockerfile.prod` com build multi-stage
+1. **Docker Compose**: `docker-compose.yml` otimizado para produção
+2. **Dockerfile**: `Dockerfile` com build multi-stage
 3. **Deploy Script**: `deploy.sh` para automatizar a instalação
 
 **Variáveis de Ambiente Necessárias:**
