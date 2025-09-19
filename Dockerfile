@@ -79,8 +79,7 @@ RUN apk add --no-cache \
     php83-zip \
     php83-openssl \
     supervisor \
-    && addgroup -g 82 www-data \
-    && adduser -u 82 -D -S -G www-data www-data
+    && adduser -u 82 -D -S -G www-data www-data 2>/dev/null || true
 
 # Copy PHP configuration
 COPY docker/php/php.ini /etc/php83/php.ini
