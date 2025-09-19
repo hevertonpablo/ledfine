@@ -51,7 +51,7 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
 # Install npm dependencies and build assets
-RUN npm ci --only=production \
+RUN npm install --omit=dev \
     && npm run build \
     && rm -rf node_modules
 
