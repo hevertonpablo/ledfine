@@ -30,7 +30,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     gd \
     intl \
     calendar \
-    zip
+    zip \
+    && pecl install redis \
+    && docker-php-ext-enable redis
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
