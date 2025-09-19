@@ -4,8 +4,8 @@ services:
             context: .
             dockerfile: Dockerfile
         image: bagisto-app:latest
-        ports:
-            - "${APP_PORT:-80}:80"
+        expose:
+            - "80"
         environment:
             - APP_ENV=production
             - APP_DEBUG=false
@@ -27,8 +27,6 @@ services:
 
     mysql:
         image: 'mysql:8.0'
-        ports:
-            - '${FORWARD_DB_PORT:-3306}:3306'
         environment:
             MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
             MYSQL_DATABASE: '${DB_DATABASE}'
@@ -46,8 +44,6 @@ services:
 
     redis:
         image: 'redis:alpine'
-        ports:
-            - '${FORWARD_REDIS_PORT:-6379}:6379'
         volumes:
             - redis-data:/data
         networks:
@@ -59,9 +55,6 @@ services:
 
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
-        ports:
-            - '9200:9200'
-            - '9300:9300'
         environment:
             - xpack.security.enabled=false
             - discovery.type=single-node
